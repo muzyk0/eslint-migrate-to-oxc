@@ -1,18 +1,20 @@
 import { includeIgnoreFile } from '@eslint/compat';
 import js from '@eslint/js';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 import { configs, plugins } from 'eslint-config-airbnb-extended';
 import { rules as prettierConfigRules } from 'eslint-config-prettier';
+import effector from 'eslint-plugin-effector';
 import oxlint from 'eslint-plugin-oxlint';
 import prettierPlugin from 'eslint-plugin-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import tseslint from 'typescript-eslint';
-import effector from 'eslint-plugin-effector';
-import tsParser from '@typescript-eslint/parser';
 
 export const projectRoot = path.resolve('.');
 export const gitignorePath = path.resolve(projectRoot, '.gitignore');
+
+const typescriptFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts', '**/*.d.ts'];
 
 const jsConfig = [
   // ESLint Recommended Rules
@@ -97,7 +99,6 @@ const jsConfig = [
       'no-use-before-define': 'warn',
       'prefer-const': 'warn',
       'no-self-compare': 'warn',
-      'one-var': 'warn',
 
       'one-var': 'off',
       'consistent-return': 'off',
@@ -185,9 +186,7 @@ const typescriptConfig = [
   //   ...plugins.typescriptEslint,
   // },
   {
-    plugins: {
-      '@typescript-eslint': tsPlugin,
-    },
+    files: typescriptFiles,
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -197,11 +196,18 @@ const typescriptConfig = [
   },
   // Airbnb Base TypeScript Config
   // ...configs.base.typescript,
-  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.recommendedTypeChecked.map((config) => ({
+    ...config,
+    files: typescriptFiles,
+  })),
   // Airbnb React TypeScript Config
-  ...configs.react.typescript,
+  ...configs.react.typescript.map((config) => ({
+    ...config,
+    files: typescriptFiles,
+  })),
 
   {
+    files: typescriptFiles,
     rules: {
       '@typescript-eslint/no-unsafe-function-type': 'warn',
       '@typescript-eslint/no-shadow': 'warn',
@@ -237,7 +243,6 @@ const typescriptConfig = [
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-namespace': 'off',
       '@typescript-eslint/naming-convention': 'off', // todo: Написать правило
-      '@typescript-eslint/no-unsafe-assignment': 'off', // TODO: warn
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/no-unnecessary-type-arguments': 'off',
       '@typescript-eslint/no-unnecessary-type-constraint': 'off',
@@ -278,6 +283,7 @@ const effectorConfig = [
   // Prettier Plugin
   {
     name: 'effector',
+    files: typescriptFiles,
     plugins: {
       effector: effector,
     },
@@ -285,6 +291,7 @@ const effectorConfig = [
   // Prettier Config
   {
     name: 'effector',
+    files: typescriptFiles,
     rules: {
       'effector/enforce-effect-naming-convention': 'off',
       'effector/enforce-store-naming-convention': 'off',
@@ -321,14 +328,15 @@ const ignores = [
   'webpack.*.js',
 ];
 
-// Ignore .gitignore files/folder in eslint
-const flatConf = includeIgnoreFile(gitignorePath);
+// Ignore .gitignore files/folder in eslint when the snapshot includes it.
+const flatConf = existsSync(gitignorePath) ? includeIgnoreFile(gitignorePath) : {};
+const flatConfIgnores = Array.isArray(flatConf.ignores) ? flatConf.ignores : [];
 
 /** @type {import('eslint').Linter.Config[]} */
 const esLintConfig = [
   {
     ...flatConf,
-    ignores: [...ignores, ...(flatConf?.ignores || {})],
+    ignores: [...ignores, ...flatConfIgnores],
   },
   // React Config
   ...reactConfig,
@@ -340,7 +348,6 @@ const esLintConfig = [
   ...prettierConfig,
   ...effectorConfig,
   // high-performance linter
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   ...oxlint.configs['flat/recommended'],
 ];
 
