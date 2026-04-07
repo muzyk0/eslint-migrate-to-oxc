@@ -7,14 +7,55 @@ import effector from 'eslint-plugin-effector';
 import oxlint from 'eslint-plugin-oxlint';
 import prettierPlugin from 'eslint-plugin-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import tseslint from 'typescript-eslint';
 
 export const projectRoot = path.resolve('.');
 export const gitignorePath = path.resolve(projectRoot, '.gitignore');
+export const oxlintBaseConfigPath = path.resolve(projectRoot, '.oxlintrc-base.json');
 
 const typescriptFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts', '**/*.d.ts'];
+
+const readJsonConfig = (filePath) => {
+  if (!existsSync(filePath)) {
+    return {};
+  }
+
+  return JSON.parse(readFileSync(filePath, 'utf8'));
+};
+
+const toOffRules = (rules = {}) =>
+  Object.fromEntries(Object.keys(rules).map((ruleName) => [ruleName, 'off']));
+
+const oxlintBaseConfig = readJsonConfig(oxlintBaseConfigPath);
+const oxlintRootRules = oxlintBaseConfig.rules || {};
+const oxlintOverrides = Array.isArray(oxlintBaseConfig.overrides)
+  ? oxlintBaseConfig.overrides
+  : [];
+
+const oxlintMirroredRuleDisables = [
+  Object.keys(oxlintRootRules).length > 0
+    ? {
+        name: 'oxlint/mirrored-root-rules',
+        rules: toOffRules(oxlintRootRules),
+      }
+    : null,
+  ...oxlintOverrides
+    .filter((override) => Object.keys(override.rules || {}).length > 0)
+    .map((override, index) => ({
+      name: `oxlint/mirrored-override-rules/${index}`,
+      ...(override.files ? { files: override.files } : {}),
+      rules: toOffRules(override.rules),
+    })),
+  {
+    name: 'oxlint/mirrored-typescript-alias-rules',
+    files: typescriptFiles,
+    rules: {
+      '@typescript-eslint/no-shadow': 'off',
+    },
+  },
+].filter(Boolean);
 
 const jsConfig = [
   // ESLint Recommended Rules
@@ -325,6 +366,7 @@ const ignores = [
   'backend/main/__tests__/*',
   'frontend/public/',
   'frontend/src/assets/',
+  'lint-fixtures/**/*',
   'webpack.*.js',
 ];
 
@@ -349,6 +391,8 @@ const esLintConfig = [
   ...effectorConfig,
   // high-performance linter
   ...oxlint.configs['flat/recommended'],
+  // Keep ESLint focused on rules Oxlint is not running.
+  ...oxlintMirroredRuleDisables,
 ];
 
 export default esLintConfig;

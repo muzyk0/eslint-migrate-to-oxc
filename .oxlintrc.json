@@ -17,6 +17,7 @@
     "backend/main/__tests__/*",
     "frontend/public/",
     "frontend/src/assets/",
+    "lint-fixtures/**/*",
     "webpack.*.js"
   ]
 }
