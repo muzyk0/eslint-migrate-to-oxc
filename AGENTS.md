@@ -6,7 +6,7 @@ This repository is a root-level configuration workspace for migrating from ESLin
 
 - `package.json` declares the workspace and shared dev dependencies.
 - `eslint.config.mjs` is the main flat ESLint config.
-- `.oxlintrc.json` and `.oxlintrc-base.json` define Oxlint rules and shared ignores.
+- `.oxlintrc.json` defines Oxlint rules and shared ignores.
 - `.prettierrc`, `.prettierignore`, and `.oxfmtrc.json` control formatting.
 
 `package.json` declares `frontend` and `backend` workspaces, but those directories are not present in this snapshot. If they are added later, keep package-specific overrides inside each workspace and preserve shared rules at the repo root.
