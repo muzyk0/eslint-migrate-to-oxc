@@ -10,6 +10,9 @@ declare function useEffect(callback: () => void, deps: unknown[]): void;
 declare const source: unknown;
 declare const target: unknown;
 
+const value = foo + 1;
+const foo = 1;
+
 enum Kind {
   A = 1,
   B = 1,
@@ -42,6 +45,8 @@ forward({ from: source, to: target });
 void React;
 void zeta;
 void alpha;
+void value;
+void foo;
 void Example;
 void Kind;
 void HookFixture;

@@ -131,6 +131,7 @@
     "no-plusplus": "warn",
     "no-loop-func": "warn",
     "no-constructor-return": "warn",
+    "no-use-before-define": "warn",
     "prefer-const": "warn",
     "no-self-compare": "warn"
   },
