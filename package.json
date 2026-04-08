@@ -6,6 +6,12 @@
   "license": "UNLICENSED",
   "author": "me",
   "main": "dist/backend/main.js",
+  "scripts": {
+    "lint": "npm run lint:oxlint && npm run lint:eslint",
+    "lint:eslint": "eslint .",
+    "lint:oxlint": "oxlint .",
+    "format:check": "prettier --check ."
+  },
   "devDependencies": {
     "@eslint/compat": "^2.0.3",
     "@eslint/js": "^9.39.4",

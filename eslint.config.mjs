@@ -144,7 +144,7 @@ const esLintConfig = [
   // TypeScript Config
   ...typescriptConfig,
   ...effectorConfig,
-  // high-performance linter
+  // Disable ESLint rules already covered by Oxlint. Keep this last.
   ...oxlint.buildFromOxlintConfigFile(oxlintConfigPath),
 ];
 
