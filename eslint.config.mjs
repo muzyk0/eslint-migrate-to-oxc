@@ -1,193 +1,21 @@
 import { includeIgnoreFile } from '@eslint/compat';
-import js from '@eslint/js';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-import { configs, plugins } from 'eslint-config-airbnb-extended';
-import { rules as prettierConfigRules } from 'eslint-config-prettier';
+import tsParser from '@typescript-eslint/parser';
+import effector from 'eslint-plugin-effector';
 import oxlint from 'eslint-plugin-oxlint';
-import prettierPlugin from 'eslint-plugin-prettier';
-import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import tseslint from 'typescript-eslint';
-import effector from 'eslint-plugin-effector';
-import tsParser from '@typescript-eslint/parser';
 
 export const projectRoot = path.resolve('.');
 export const gitignorePath = path.resolve(projectRoot, '.gitignore');
+export const oxlintConfigPath = path.resolve(projectRoot, '.oxlintrc.json');
 
-const jsConfig = [
-  // ESLint Recommended Rules
-  {
-    name: 'js/config',
-    ...js.configs.recommended,
-  },
-  // Stylistic Plugin
-  plugins.stylistic,
-  // Import X Plugin
-  plugins.importX,
-  // Airbnb Base Recommended Config
-  ...configs.base.recommended,
-
-  // Simple Import Sort
-  {
-    plugins: {
-      'simple-import-sort': simpleImportSort,
-    },
-    rules: {
-      'simple-import-sort/imports': [
-        'warn',
-        {
-          groups: [
-            ['^react', '^@?\\w'],
-            ['^(@|components)(/.*|$)'],
-            ['^\\u0000'],
-            ['^\\.\\.(?!/?$)', '^\\.\\./?$'],
-            ['^\\./(?=.*/)(?!/?$)', '^\\.(?!/?$)', '^\\./?$'],
-            ['^.+\\.?(css)$'],
-          ],
-        },
-      ],
-    },
-  },
-
-  {
-    rules: {
-      // import-x
-      'import-x/no-cycle': 'warn', // TODO: Включить в будущем
-
-      'import-x/no-duplicates': 'warn',
-      'import-x/newline-after-import': 'warn',
-      'import-x/no-useless-path-segments': 'warn',
-      'import-x/no-named-as-default': 'warn',
-      'import-x/first': 'warn',
-
-      'import-x/no-relative-packages': 'off',
-      'import-x/no-extraneous-dependencies': 'off',
-      'import-x/no-unresolved': 'off',
-      'import-x/prefer-default-export': 'off',
-      'import-x/extensions': 'off',
-      'import-x/order': 'off', // todo: Сортировка импортов
-
-      // @stylistic
-      '@stylistic/lines-between-class-members': 'warn',
-
-      '@stylistic/spaced-comment': 'off',
-
-      // js
-      'default-case': 'warn',
-      'no-nested-ternary': 'warn',
-      'prefer-template': 'warn',
-      'no-unsafe-optional-chaining': 'warn',
-      'default-param-last': 'warn',
-      'no-shadow': 'warn',
-      eqeqeq: 'warn',
-      'no-useless-return': 'warn',
-      'no-redeclare': 'warn',
-      camelcase: ['warn', { allow: ['^\\$'] }], // todo: For effector $_store
-      'dot-notation': 'warn',
-      radix: 'warn',
-      'no-restricted-globals': 'warn',
-      'guard-for-in': 'warn',
-      'no-param-reassign': 'warn',
-      'no-return-assign': 'warn',
-      'no-extra-boolean-cast': 'warn',
-      'no-cond-assign': 'warn',
-      'no-plusplus': 'warn',
-      'no-loop-func': 'warn',
-      'no-constructor-return': 'warn',
-      'no-use-before-define': 'warn',
-      'prefer-const': 'warn',
-      'no-self-compare': 'warn',
-      'one-var': 'warn',
-
-      'one-var': 'off',
-      'consistent-return': 'off',
-      'max-classes-per-file': 'off',
-      'class-methods-use-this': 'off',
-      'new-cap': 'off',
-      'no-await-in-loop': 'off',
-      'no-restricted-syntax': 'off',
-      'no-undef': 'off',
-      'no-undef-init': 'off',
-      'arrow-body-style': 'off',
-      'array-callback-return': 'off',
-      'no-promise-executor-return': 'off',
-      'prefer-destructuring': 'off',
-      'no-useless-computed-key': 'off',
-      'object-shorthand': 'off',
-      'no-underscore-dangle': 'off',
-      'no-multi-assign': 'off',
-      'prefer-regex-literals': 'off',
-      'no-unneeded-ternary': 'off',
-      'no-continue': 'off',
-      'no-else-return': 'off',
-      'no-void': 'off',
-      'no-lonely-if': 'off',
-      'no-labels': 'off',
-    },
-  },
-];
-
-const reactConfig = [
-  // React Plugin
-  plugins.react,
-  // React Hooks Plugin
-  plugins.reactHooks,
-  // React JSX A11y Plugin
-  plugins.reactA11y,
-  // Airbnb React Recommended Config
-  ...configs.react.recommended,
-
-  {
-    rules: {
-      'react/destructuring-assignment': 'warn',
-      'react-hooks/exhaustive-deps': 'warn',
-      'react/no-unused-prop-types': 'warn',
-      'react/no-unstable-nested-components': 'warn',
-      'react/jsx-no-useless-fragment': 'warn',
-      'react/jsx-boolean-value': 'warn',
-      'react/no-array-index-key': 'warn',
-      'react/no-unused-class-component-methods': 'warn',
-      'react/self-closing-comp': 'warn',
-      'react/jsx-no-constructed-context-values': 'warn',
-      'react/no-children-prop': 'warn',
-      'react/no-unknown-property': 'warn',
-      'react/jsx-fragments': 'warn',
-
-      'react/button-has-type': 'off',
-      'react/prop-types': 'off',
-      'react/require-default-props': 'off',
-      'react/function-component-definition': 'off',
-      'react/jsx-filename-extension': 'off',
-
-      'react-hooks/rules-of-hooks': 'warn',
-
-      'jsx-a11y/anchor-is-valid': 'warn',
-      'jsx-a11y/label-has-associated-control': 'warn',
-      'jsx-a11y/tabindex-no-positive': 'warn',
-      'jsx-a11y/no-noninteractive-tabindex': 'warn',
-      'jsx-a11y/alt-text': 'warn',
-      'jsx-a11y/no-interactive-element-to-noninteractive-role': 'warn',
-      'jsx-a11y/no-autofocus': 'warn',
-
-      'jsx-a11y/control-has-associated-label': 'off',
-      'jsx-a11y/click-events-have-key-events': 'off',
-      'jsx-a11y/no-static-element-interaction': 'off',
-      'jsx-a11y/no-static-element-interactions': 'off',
-    },
-  },
-];
-
-// console.log('plugins.typescriptEslint', plugins.typescriptEslint);
+const typescriptFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts', '**/*.d.ts'];
 
 const typescriptConfig = [
-  // TypeScript ESLint Plugin
-  // {
-  //   ...plugins.typescriptEslint,
-  // },
   {
-    plugins: {
-      '@typescript-eslint': tsPlugin,
-    },
+    name: 'typescript/parser',
+    files: typescriptFiles,
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -196,12 +24,15 @@ const typescriptConfig = [
     },
   },
   // Airbnb Base TypeScript Config
-  // ...configs.base.typescript,
-  ...tseslint.configs.recommendedTypeChecked,
-  // Airbnb React TypeScript Config
-  ...configs.react.typescript,
+  ...tseslint.configs.recommendedTypeChecked.map((config) => ({
+    ...config,
+    name: config.name ? `typescript/${config.name}` : undefined,
+    files: typescriptFiles,
+  })),
 
   {
+    name: 'typescript/custom-rules',
+    files: typescriptFiles,
     rules: {
       '@typescript-eslint/no-unsafe-function-type': 'warn',
       '@typescript-eslint/no-shadow': 'warn',
@@ -237,7 +68,6 @@ const typescriptConfig = [
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-namespace': 'off',
       '@typescript-eslint/naming-convention': 'off', // todo: Написать правило
-      '@typescript-eslint/no-unsafe-assignment': 'off', // TODO: warn
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/no-unnecessary-type-arguments': 'off',
       '@typescript-eslint/no-unnecessary-type-constraint': 'off',
@@ -251,33 +81,11 @@ const typescriptConfig = [
   },
 ];
 
-const prettierConfig = [
-  // Prettier Plugin
-  {
-    name: 'prettier/plugin/config',
-    plugins: {
-      prettier: prettierPlugin,
-    },
-  },
-  // Prettier Config
-  {
-    name: 'prettier/config',
-    rules: {
-      ...prettierConfigRules,
-      'prettier/prettier': [
-        'warn', // todo: return to error
-        {
-          endOfLine: 'auto',
-        },
-      ],
-    },
-  },
-];
-
 const effectorConfig = [
   // Prettier Plugin
   {
     name: 'effector',
+    files: typescriptFiles,
     plugins: {
       effector: effector,
     },
@@ -285,6 +93,7 @@ const effectorConfig = [
   // Prettier Config
   {
     name: 'effector',
+    files: typescriptFiles,
     rules: {
       'effector/enforce-effect-naming-convention': 'off',
       'effector/enforce-store-naming-convention': 'off',
@@ -318,30 +127,25 @@ const ignores = [
   'backend/main/__tests__/*',
   'frontend/public/',
   'frontend/src/assets/',
+  'lint-fixtures/**/*',
   'webpack.*.js',
 ];
 
-// Ignore .gitignore files/folder in eslint
-const flatConf = includeIgnoreFile(gitignorePath);
+// Ignore .gitignore files/folder in eslint when the snapshot includes it.
+const flatConf = existsSync(gitignorePath) ? includeIgnoreFile(gitignorePath) : {};
+const flatConfIgnores = Array.isArray(flatConf.ignores) ? flatConf.ignores : [];
 
 /** @type {import('eslint').Linter.Config[]} */
 const esLintConfig = [
   {
     ...flatConf,
-    ignores: [...ignores, ...(flatConf?.ignores || {})],
+    ignores: [...ignores, ...flatConfIgnores],
   },
-  // React Config
-  ...reactConfig,
   // TypeScript Config
   ...typescriptConfig,
-  // Javascript Config
-  ...jsConfig,
-  // Prettier Config
-  ...prettierConfig,
   ...effectorConfig,
-  // high-performance linter
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-  ...oxlint.configs['flat/recommended'],
+  // Disable ESLint rules already covered by Oxlint. Keep this last.
+  ...oxlint.buildFromOxlintConfigFile(oxlintConfigPath),
 ];
 
 export default esLintConfig;

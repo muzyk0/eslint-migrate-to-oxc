@@ -29,8 +29,8 @@
       "@nestjsx/crud-request": ["./lib/@nestjsx/crud-request"],
       "@nestjsx/crud-typeorm": ["./lib/@nestjsx/crud-typeorm"],
       "@nestjsx/crud": ["./lib/@nestjsx/crud"],
-      "@nestjsx/crud/*": ["./lib/@nestjsx/crud/*"],
-    },
+      "@nestjsx/crud/*": ["./lib/@nestjsx/crud/*"]
+    }
   },
   "exclude": [
     "node_modules",
@@ -40,6 +40,6 @@
     "generators",
     "dist",
     "package",
-    "sds-eng-showroom-**",
-  ],
+    "sds-eng-showroom-**"
+  ]
 }
